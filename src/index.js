@@ -4,7 +4,7 @@ const utils = require('./utils')
 const pkg = require('../package.json')
 const app = require('./app')
 program
-    .version(pkg.version)
+    .version(pkg.version, '-v, --version')
     .command('init')
     .description('初始化需要填写信息：手机号码，密码，课程。')
     .action((async () => {
@@ -25,3 +25,6 @@ program
 
 program
     .parse(process.argv);
+if (process.argv.length < 3) {
+    program.help()
+}
