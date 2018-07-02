@@ -1,13 +1,27 @@
 {
   "name": "geek-time-topdf",
   "version": "1.0.0",
-  "description": "",
+  "description": "use puppeteer geek time course to pdf",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guowenfh/geek-time-topdf.git"
+  },
+  "keywords": [
+    "puppeteer",
+    "inquirer",
+    "commander",
+    "pdf"
+  ],
+  "author": "guowenfh",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/guowenfh/geek-time-topdf/issues"
+  },
+  "homepage": "https://github.com/guowenfh/geek-time-topdf#readme",
   "dependencies": {
     "commander": "^2.16.0",
     "inquirer": "^6.0.0",
