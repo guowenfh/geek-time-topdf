@@ -10,11 +10,16 @@ program
     .action(async () => {
         console.log('初始化需要填写信息：手机号码，密码，查找已订阅课程。')
         try {
+            // 获取登录帐号信息
             const account = await inquirer.prompt(utils.getAccountPromptList())
             console.log('正在登录中..')
+            // 登录，并且拿到已订阅的列表
             const subList = await app.start(account)
-            const { course } = await inquirer.prompt(utils.getCoursePromptList())
+            // 选择打印的课程
+            const { course } = await inquirer.prompt(utils.getCoursePromptList(subList.map(item=>item.title)))
+            // 搜索文章列表
             const { courseName, articleList } = await app.searchCourse(course, subList)
+            // 设置打印路径
             const { path } = await inquirer.prompt(utils.getCoursePathPromptList())
             await app.pageToPdf(articleList, courseName, path)
         } catch (error) {

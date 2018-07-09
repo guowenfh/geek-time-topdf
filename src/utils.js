@@ -25,12 +25,13 @@ exports.getAccountPromptList = function () {
         }
     ]
 }
-exports.getCoursePromptList = function () {
+exports.getCoursePromptList = function (choices) {
     return [
         {
-            type: 'input',
+            type: 'list',
             name: 'course',
-            message: '请输入你要打印的课程：'
+            message: '请选择你要打印的课程：',
+            choices
         }
     ]
 }

@@ -58,11 +58,7 @@ async function start(account) {
                 }
             })
         })
-        console.log(
-            subList.length
-                ? `已订阅课程如下:\n${subList.map(item => item.title).join('\n')}`
-                : '无已订阅课程'
-        )
+        console.log(!subList.length && '无已订阅课程')
         return subList
     } catch (error) {
         console.error('用户登录失败', error)
@@ -84,7 +80,7 @@ async function searchCourse(course, subList) {
         //     if (!curr) return false
         //     return curr && curr.getAttribute('data-gk-spider-link')
         // }, course)
-        console.log('搜索中...')
+        console.log('搜索中, 请耐心等待...')
         const curr = subList.find(item => item.title.indexOf(course.trim()) !== -1)
         if (!curr) throw Error('no search course')
         await page.goto(`https://time.geekbang.org${curr.link}`)
@@ -95,6 +91,7 @@ async function searchCourse(course, subList) {
             scrollEnable = await page.evaluate(async scrollStep => {
                 let scrollTop = document.scrollingElement.scrollTop
                 document.scrollingElement.scrollTop = scrollTop + scrollStep
+                await new Promise(res => setTimeout(res, 500))
                 return document.body.clientHeight > scrollTop + 1080 ? true : false
             }, scrollStep)
         }
