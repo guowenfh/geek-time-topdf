@@ -2,15 +2,8 @@ const puppeteer = require('puppeteer')
 const fs = require('fs')
 const path = require('path')
 const util = require('util')
-const access = util.promisify(fs.access)
 const mkdir = util.promisify(fs.mkdir)
-const sleep = (time = 0) => {
-    return new Promise(resolve => {
-        setTimeout(() => {
-            resolve()
-        }, time)
-    })
-}
+const ProgressBar = require('progress')
 
 let browser
 let page
@@ -126,19 +119,25 @@ async function pageToPdf(articleList, course, basePath) {
         } else {
             basePath = `${process.cwd()}/${course}/`
         }
-        console.error(basePath)
         const err = fs.existsSync(basePath)
         if (!err) {
             await mkdir(`${process.cwd()}/${course}/`)
         }
-
+        const bar = new ProgressBar('  printing: :current/:total [:bar]  :title', {
+            complete: '=',
+            width:20,
+            total: articleList.length
+        });
         // 这里也可以使用promise all，但cpu可能吃紧，谨慎操作
         for (let i = 0,len = articleList.length; i < len; i++) {
 
             let articlePage = await browser.newPage()
 
             var a = articleList[i]
-            console.log(`${i+1}/${len},正在输出：${a.title}`)
+            bar.tick({
+                title:a.title
+            });
+
             await articlePage.goto(a.href)
 
             let scrollEnable = true

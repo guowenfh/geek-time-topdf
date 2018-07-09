@@ -28,6 +28,7 @@
   "dependencies": {
     "commander": "^2.16.0",
     "inquirer": "^6.0.0",
+    "progress": "^2.0.0",
     "puppeteer": "^1.5.0"
   },
   "bin": {
