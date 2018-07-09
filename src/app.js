@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer')
 const fs = require('fs')
 const path = require('path')
 const util = require('util')
@@ -32,8 +32,8 @@ async function start(account) {
         const navigationPromise = await page.waitForNavigation()
         await page.waitForSelector('.nw-phone-wrap .nw-input', { timeout: 30000 })
         // 登录
-        await page.type('.nw-phone-wrap .nw-input', String(account.phone));
-        await page.type('.input-wrap .input', account.password, { delay: 20 });
+        await page.type('.nw-phone-wrap .nw-input', String(account.phone))
+        await page.type('.input-wrap .input', account.password, { delay: 20 })
         page.click('.mybtn')
         // 页面跳转回来
         await page.waitForNavigation()
@@ -43,47 +43,67 @@ async function start(account) {
             return $nav.getAttribute('href')
         })
         await page.goto(href)
-        let scrollEnable = true;
-        let scrollStep = 1000; //每次滚动的步长
+        let scrollEnable = true
+        let scrollStep = 1000 //每次滚动的步长
         await page.waitForSelector('.column-item-bd-info-hd')
         while (scrollEnable) {
-            scrollEnable = await page.evaluate(async (scrollStep) => {
-                let scrollTop = document.scrollingElement.scrollTop;
-                document.scrollingElement.scrollTop = scrollTop + scrollStep;
+            scrollEnable = await page.evaluate(async scrollStep => {
+                let scrollTop = document.scrollingElement.scrollTop
+                document.scrollingElement.scrollTop = scrollTop + scrollStep
                 await new Promise(res => setTimeout(res, 200))
                 return document.body.clientHeight > scrollTop + 1080 ? true : false
-            }, scrollStep);
+            }, scrollStep)
         }
-        return scrollEnable
+        const subList = await page.evaluate(() => {
+            const itemList = [...document.querySelectorAll('.column-item')].filter(item => {
+                return item.innerText.indexOf('已订阅') !== -1 || item.innerText.indexOf('已购买') !== -1
+            })
+            return itemList.map(item => {
+                return {
+                    title: item.querySelector('.column-item-bd-info-bd-title').innerText,
+                    link: item.getAttribute('data-gk-spider-link')
+                }
+            })
+        })
+        console.log(
+            subList.length
+                ? `已订阅课程如下:\n${subList.map(item => item.title).join('\n')}`
+                : '无已订阅课程'
+        )
+        return subList
     } catch (error) {
-        console.error('用户登录失败',error);
+        console.error('用户登录失败', error)
     }
-
 }
 
-
-async function searchCourse(course) {
+/**
+ * 确定需要打印的课程，输出课程目录
+ * @param {String} course 搜索的课程
+ * @param {Array} subList 已经订阅的课程列表
+ * @returns
+ */
+async function searchCourse(course, subList) {
     try {
-        const link = await page.evaluate((courseName) => {
-            const curr = [...document.querySelectorAll('.column-item')].find(item => {
-                return item.innerText.indexOf(courseName) !== -1
-            })
-            if (!curr) return false
-            return curr && curr.getAttribute('data-gk-spider-link')
-        }, course)
-        if (!link) throw Error('no search course')
-        await page.goto(`https://time.geekbang.org${link}`)
+        // const link = await page.evaluate((courseName) => {
+        //     const curr = [...document.querySelectorAll('.column-item')].find(item => {
+        //         return item.innerText.indexOf(courseName) !== -1
+        //     })
+        //     if (!curr) return false
+        //     return curr && curr.getAttribute('data-gk-spider-link')
+        // }, course)
+        console.log('搜索中...')
+        const curr = subList.find(item => item.title.indexOf(course.trim()) !== -1)
+        if (!curr) throw Error('no search course')
+        await page.goto(`https://time.geekbang.org${curr.link}`)
         await page.waitForSelector('.article-item-title')
-        let scrollEnable = true;
-        let scrollStep = 1000; //每次滚动的步长
+        let scrollEnable = true
+        let scrollStep = 1000 //每次滚动的步长
         while (scrollEnable) {
-            console.error('----');
-            scrollEnable = await page.evaluate(async (scrollStep) => {
-                let scrollTop = document.scrollingElement.scrollTop;
-                document.scrollingElement.scrollTop = scrollTop + scrollStep;
-                // await new Promise(res => setTimeout(res, 2000))
+            scrollEnable = await page.evaluate(async scrollStep => {
+                let scrollTop = document.scrollingElement.scrollTop
+                document.scrollingElement.scrollTop = scrollTop + scrollStep
                 return document.body.clientHeight > scrollTop + 1080 ? true : false
-            }, scrollStep);
+            }, scrollStep)
         }
         const articleList = await page.evaluate(() => {
             return [...document.querySelectorAll('.article-item')].map(item => {
@@ -93,39 +113,55 @@ async function searchCourse(course) {
             })
         })
         // page.close()
-        return articleList
+        console.log(`《${curr.title}》:一共查找到 ( ${articleList.length} ) 篇文章。`)
+        return { courseName: curr.title, articleList }
     } catch (error) {
-        console.error('未搜索到课程',error);
+        console.error('未搜索到课程', error)
     }
 }
 async function pageToPdf(articleList, course, basePath) {
     try {
-        if(basePath){
+        if (basePath) {
             basePath = `${path.resolve(path.normalize(basePath))}/${course}/`
-        }else{
+        } else {
             basePath = `${process.cwd()}/${course}/`
         }
-        console.error(basePath);
+        console.error(basePath)
         const err = fs.existsSync(basePath)
-        if(!err){
+        if (!err) {
             await mkdir(`${process.cwd()}/${course}/`)
         }
 
         // 这里也可以使用promise all，但cpu可能吃紧，谨慎操作
-        for (var i = 1; i < articleList.length; i++) {
+        for (let i = 0,len = articleList.length; i < len; i++) {
+
             let articlePage = await browser.newPage()
 
-            var a = articleList[i];
-            await articlePage.goto(a.href);
+            var a = articleList[i]
+            console.log(`${i+1}/${len},正在输出：${a.title}`)
+            await articlePage.goto(a.href)
 
-            await sleep(3000);
+            let scrollEnable = true
+            let scrollStep = 1000 //每次滚动的步长
+            while (scrollEnable) {
+                scrollEnable = await page.evaluate(async scrollStep => {
+                    let scrollTop = document.scrollingElement.scrollTop
+                    document.scrollingElement.scrollTop = scrollTop + scrollStep
+                    await new Promise(res => setTimeout(res, 200))
+                    return document.body.clientHeight > scrollTop + 1080 ? true : false
+                }, scrollStep)
+            }
 
-            await articlePage.pdf({ path: `${basePath}${a.title}.pdf`});
+            await articlePage.pdf({ path: `${basePath}${a.title}.pdf` })
 
-            articlePage.close();
+            articlePage.close()
         }
+        console.log('任务完成')
+        page.close()
+        browser.close()
+        process.exit()
     } catch (error) {
-        console.error('打印出错', error);
+        console.error('打印出错', error)
     }
 }
 exports.start = start
