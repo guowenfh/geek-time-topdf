@@ -6,9 +6,9 @@ const app = require('./app')
 program
     .version(pkg.version, '-v, --version')
     .command('init')
-    .description('初始化需要填写信息：手机号码，密码，课程。')
+    .description('打印 pdf 初始化需要填写信息：手机号码，密码。')
     .action(async () => {
-        console.log('初始化需要填写信息：手机号码，密码，查找已订阅课程。')
+        console.log('打印 pdf 初始化需要填写信息：手机号码，密码。')
         try {
             // 获取登录帐号信息
             const account = await inquirer.prompt(utils.getAccountPromptList())

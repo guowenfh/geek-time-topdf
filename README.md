@@ -16,3 +16,8 @@ gkpdf init
 需要手机号码和密码。课程名称
 
 **不记录任何信息**
+
+
+操作说明：
+
+![instructions](./instructions.png)

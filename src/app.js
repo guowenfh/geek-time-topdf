@@ -58,7 +58,7 @@ async function start(account) {
                 }
             })
         })
-        console.log(!subList.length && '无已订阅课程')
+        console.log(subList.length ? `共查找到${subList.length}门课程。`: '无已订阅课程')
         return subList
     } catch (error) {
         console.error('用户登录失败', error)
