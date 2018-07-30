@@ -6,7 +6,7 @@ need phone, password, course name.
 Do not record any information...
 
 ```sh
-npm install geek-time-topdf -g  # in china use cnpm 推荐使用 cnpm
+npm install geek-time-topdf -g  # in china use cnpm 推荐使用 cnpm，加快安装速度
 
 gkpdf init
 ```
@@ -22,6 +22,7 @@ gkpdf init
 
 ![instructions](./instructions.png)
 
-changeLog
+changeLogs:
 
-1.1.2：版本添加 png 输出选项
+1.1.4: 修复自定义目录时，未正确创建目录的 bug
+1.1.2: 版本添加 png 输出选项
