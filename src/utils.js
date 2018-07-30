@@ -44,3 +44,15 @@ exports.getCoursePathPromptList = function () {
         }
     ]
 }
+
+exports.getOutputFileType = function () {
+    return [
+        {
+            type: 'rawlist',
+            name: 'fileType',
+            choices:['pdf','png'],
+            default:'pdf',
+            message: '输出的文件类型（默认 pdf ）：'
+        }
+    ]
+}

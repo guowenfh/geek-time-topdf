@@ -21,3 +21,7 @@ gkpdf init
 操作说明：
 
 ![instructions](./instructions.png)
+
+changeLog
+
+1.1.2：版本添加 png 输出选项

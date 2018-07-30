@@ -21,7 +21,8 @@ program
             const { courseName, articleList } = await app.searchCourse(course, subList)
             // 设置打印路径
             const { path } = await inquirer.prompt(utils.getCoursePathPromptList())
-            await app.pageToPdf(articleList, courseName, path)
+            const {fileType} =  await inquirer.prompt(utils.getOutputFileType())
+            await app.pageToFile(articleList, courseName, path, fileType)
         } catch (error) {
             console.error(error)
         }

@@ -109,7 +109,7 @@ async function searchCourse(course, subList) {
         console.error('未搜索到课程', error)
     }
 }
-async function pageToPdf(articleList, course, basePath) {
+async function pageToFile(articleList, course, basePath, fileType) {
     try {
         if (basePath) {
             basePath = `${path.resolve(path.normalize(basePath))}/${course}/`
@@ -143,12 +143,20 @@ async function pageToPdf(articleList, course, basePath) {
                 scrollEnable = await page.evaluate(async scrollStep => {
                     let scrollTop = document.scrollingElement.scrollTop
                     document.scrollingElement.scrollTop = scrollTop + scrollStep
-                    await new Promise(res => setTimeout(res, 200))
+                    await new Promise(res => setTimeout(res, 500))
                     return document.body.clientHeight > scrollTop + 1080 ? true : false
                 }, scrollStep)
             }
-
-            await articlePage.pdf({ path: `${basePath}${a.title}.pdf` })
+            await new Promise(res => setTimeout(res, 600))
+            if(fileType =='pdf'){
+                await articlePage.pdf({ path: path.join(basePath,`${a.title}.pdf`)})
+            }else if(fileType == 'png'){
+                await articlePage.screenshot({
+                    path:path.join(basePath,`${a.title}.png`),
+                    type:'png',
+                    fullPage:true
+                })
+            }
 
             articlePage.close()
         }
@@ -162,4 +170,4 @@ async function pageToPdf(articleList, course, basePath) {
 }
 exports.start = start
 exports.searchCourse = searchCourse
-exports.pageToPdf = pageToPdf
+exports.pageToFile = pageToFile
