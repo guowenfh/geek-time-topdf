@@ -160,6 +160,55 @@ async function pageToPdf(articleList, course, basePath) {
         console.error('打印出错', error)
     }
 }
+
+async function pageToImage(articleList, course, basePath){
+    try {
+
+        basePath = basePath ? `${path.resolve(path.normalize(basePath))}/${course}/` : `${process.cwd()}/${course}/`
+        const err = fs.existsSync(basePath)
+        !err && await mkdir(`${process.cwd()}/${course}/`);
+
+        const bar = new ProgressBar('  printing: :current/:total [:bar]  :title', {
+            complete: '=',
+            width:20,
+            total: articleList.length
+        });
+        // 这里也可以使用promise all，但cpu可能吃紧，谨慎操作
+        for (let i = 0,len = articleList.length; i < len; i++) {
+
+            let articlePage = await browser.newPage()
+
+            var a = articleList[i]
+            bar.tick({
+                title:a.title
+            });
+
+            await articlePage.goto(a.href)
+
+            let scrollEnable = true
+            let scrollStep = 1000 //每次滚动的步长
+            while (scrollEnable) {
+                scrollEnable = await page.evaluate(async scrollStep => {
+                    let scrollTop = document.scrollingElement.scrollTop
+                    document.scrollingElement.scrollTop = scrollTop + scrollStep
+                    await new Promise(res => setTimeout(res, 200))
+                    return document.body.clientHeight > scrollTop + 1080 ? true : false
+                }, scrollStep)
+            }
+
+            await articlePage.screenshot({ path: `${basePath}${a.title}.png`, fullPage: true});
+            articlePage.close()
+        }
+
+        console.log('任务完成')
+        page.close()
+        browser.close()
+        process.exit()
+    } catch (error) {
+        console.error('出错', error)
+    }
+}
 exports.start = start
 exports.searchCourse = searchCourse
 exports.pageToPdf = pageToPdf
+exports.pageToImage = pageToImage

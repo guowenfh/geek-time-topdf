@@ -20,8 +20,12 @@ program
             // 搜索文章列表
             const { courseName, articleList } = await app.searchCourse(course, subList)
             // 设置打印路径
-            const { path } = await inquirer.prompt(utils.getCoursePathPromptList())
-            await app.pageToPdf(articleList, courseName, path)
+            const { path } = await inquirer.prompt(utils.getCoursePathPromptList());
+            // 选择打印的形式
+            const { printType } = await inquirer.prompt(utils.getPrintType());
+
+            await app[ printType === 'pdf' ? 'pageToPdf' : 'pageToImage' ](articleList, courseName, path);
+            
         } catch (error) {
             console.error(error)
         }

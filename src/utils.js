@@ -44,3 +44,14 @@ exports.getCoursePathPromptList = function () {
         }
     ]
 }
+
+exports.getPrintType = function () {
+    return [
+        {
+            type: 'list',
+            name: 'printType',
+            message: '请选择打印的形式：',
+            choices: ['pdf', '图片']
+        }
+    ]
+}
