@@ -12,7 +12,7 @@ program
     try {
       // 获取登录帐号信息
       const account = await inquirer.prompt(utils.getAccountPromptList())
-      console.log('正在登录中..')
+      console.log('正在登录中，请耐心等候..')
       // 登录，并且拿到已订阅的列表
       const subList = await app.start(account)
       // 选择打印的课程

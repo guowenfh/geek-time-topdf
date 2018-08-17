@@ -1,10 +1,10 @@
 {
   "name": "geek-time-topdf",
-  "version": "1.1.5",
+  "version": "1.2.0",
   "description": "use puppeteer geek time course to pdf",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index init"
   },
   "engines": {
     "node": ">=8.9.0"
