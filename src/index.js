@@ -16,9 +16,14 @@ program
       // 登录，并且拿到已订阅的列表
       const subList = await app.start(account)
       // 选择打印的课程
-      const { course } = await inquirer.prompt(utils.getCoursePromptList(subList.map(item => item.title)))
+      const { course } = await inquirer.prompt(
+        utils.getCoursePromptList(subList.map(item => item.title))
+      )
       // 搜索文章列表
-      const { courseName, articleList } = await app.searchCourse(course, subList)
+      const { courseName, articleList } = await app.searchCourse(
+        course,
+        subList
+      )
       // 设置打印路径
       const { path } = await inquirer.prompt(utils.getCoursePathPromptList())
       const { fileType } = await inquirer.prompt(utils.getOutputFileType())

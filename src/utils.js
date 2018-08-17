@@ -19,7 +19,9 @@ exports.getAccountPromptList = function() {
       validate: function(input) {
         // this.async() is inquirer use
         var done = this.async()
-        if (input.length < 6 || input.length > 24) return done('请输入6-24位的密码')
+        if (input.length < 6 || input.length > 24) {
+          return done('请输入6-24位的密码')
+        }
         return done(null, true)
       }
     }

@@ -22,7 +22,7 @@ async function start(account) {
     // 点击登录
     page.click('.control a.pc')
     // 页面跳转
-    const navigationPromise = await page.waitForNavigation()
+    await page.waitForNavigation()
     await page.waitForSelector('.nw-phone-wrap .nw-input', { timeout: 30000 })
     // 登录
     await page.type('.nw-phone-wrap .nw-input', String(account.phone))
@@ -48,9 +48,14 @@ async function start(account) {
       }, scrollStep)
     }
     const subList = await page.evaluate(() => {
-      const itemList = [...document.querySelectorAll('.column-item')].filter(item => {
-        return item.innerText.indexOf('已订阅') !== -1 || item.innerText.indexOf('已购买') !== -1
-      })
+      const itemList = [...document.querySelectorAll('.column-item')].filter(
+        item => {
+          return (
+            item.innerText.indexOf('已订阅') !== -1 ||
+            item.innerText.indexOf('已购买') !== -1
+          )
+        }
+      )
       return itemList.map(item => {
         return {
           title: item.querySelector('.column-item-bd-info-bd-title').innerText,
@@ -58,7 +63,9 @@ async function start(account) {
         }
       })
     })
-    console.log(subList.length ? `共查找到${subList.length}门课程。` : '无已订阅课程')
+    console.log(
+      subList.length ? `共查找到${subList.length}门课程。` : '无已订阅课程'
+    )
     return subList
   } catch (error) {
     console.error('用户登录失败', error)
@@ -73,13 +80,6 @@ async function start(account) {
  */
 async function searchCourse(course, subList) {
   try {
-    // const link = await page.evaluate((courseName) => {
-    //     const curr = [...document.querySelectorAll('.column-item')].find(item => {
-    //         return item.innerText.indexOf(courseName) !== -1
-    //     })
-    //     if (!curr) return false
-    //     return curr && curr.getAttribute('data-gk-spider-link')
-    // }, course)
     console.log('搜索中, 请耐心等待...')
     const curr = subList.find(item => item.title.indexOf(course.trim()) !== -1)
     if (!curr) throw Error('no search course')
@@ -103,7 +103,9 @@ async function searchCourse(course, subList) {
       })
     })
     // page.close()
-    console.log(`《${curr.title}》:一共查找到 ( ${articleList.length} ) 篇文章。`)
+    console.log(
+      `《${curr.title}》:一共查找到 ( ${articleList.length} ) 篇文章。`
+    )
     return { courseName: curr.title, articleList }
   } catch (error) {
     console.error('未搜索到课程', error)
@@ -112,9 +114,9 @@ async function searchCourse(course, subList) {
 async function pageToFile(articleList, course, basePath, fileType) {
   try {
     if (basePath) {
-      basePath = path.join(path.resolve(path.normalize(basePath)),course)
+      basePath = path.join(path.resolve(path.normalize(basePath)), course)
     } else {
-      basePath = path.join(process.cwd(),course)
+      basePath = path.join(process.cwd(), course)
     }
     const err = fs.existsSync(basePath)
     if (!err) {
