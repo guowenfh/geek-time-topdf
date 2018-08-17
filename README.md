@@ -1,4 +1,5 @@
 # geek-time-topdf
+
 print your geek time course to pdf. If you have already bought it
 
 need phone, password, course name.
@@ -17,12 +18,12 @@ gkpdf init
 
 **不记录任何信息**
 
-
 操作说明：
 
 ![instructions](./instructions.png)
 
 changeLogs:
 
+1.2.0: 更新代码来支持极客时间的最新版页面（**必须更新**）
 1.1.4: 修复自定义目录时，未正确创建目录的 bug
 1.1.2: 版本添加 png 输出选项
