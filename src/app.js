@@ -22,12 +22,12 @@ async function start(account) {
       height: 800
     })
     await page.goto('https://time.geekbang.org/')
-    await page.waitForSelector('.control', { timeout: 30000 })
+    await page.waitForSelector('.control', { timeout: 60000 })
     // 点击登录
     page.click('.control a.pc')
     // 页面跳转
     await page.waitForNavigation()
-    await page.waitForSelector('.nw-phone-wrap .nw-input', { timeout: 30000 })
+    await page.waitForSelector('.nw-phone-wrap .nw-input', { timeout: 60000 })
     // 登录
     await page.type('.nw-phone-wrap .nw-input', String(account.phone))
     await page.type('.input-wrap .input', account.password, { delay: 20 })
@@ -112,7 +112,10 @@ async function searchCourse(course, subList) {
     const articleList = await page.evaluate(() => {
       return [...document.querySelectorAll('.article-item')].map(item => {
         var href = item.querySelector('a').href
-        var title = item.querySelector('h2').innerText
+        var title = item
+          .querySelector('h2')
+          .innerText.replace(/\u{2F}|\u{5C}|\u{7C}|\u{22}/gu, '_')
+          .replace(/\s+/g, '')
         return { href, title }
       })
     })
