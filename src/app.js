@@ -5,6 +5,8 @@ const util = require('util')
 const mkdir = util.promisify(fs.mkdir)
 const ProgressBar = require('progress')
 
+const scrollStep = 1000 //每次滚动的步长
+const pageWaitTime = 1200 // 每次滚动页面等待下一次滚动的时间
 let browser
 let page
 
@@ -38,15 +40,18 @@ async function start(account) {
     await page.waitForSelector('.column-list')
 
     let scrollEnable = true
-    let scrollStep = 1000 //每次滚动的步长
     // 滚动到页面最底部，以保证所有的课程都被加载
     while (scrollEnable) {
-      scrollEnable = await page.evaluate(async scrollStep => {
-        let scrollTop = document.scrollingElement.scrollTop
-        document.scrollingElement.scrollTop = scrollTop + scrollStep
-        await new Promise(res => setTimeout(res, 1000))
-        return document.body.clientHeight > scrollTop + 1080 ? true : false
-      }, scrollStep)
+      scrollEnable = await page.evaluate(
+        async (scrollStep, pageWaitTime) => {
+          let scrollTop = document.scrollingElement.scrollTop
+          document.scrollingElement.scrollTop = scrollTop + scrollStep
+          await new Promise(res => setTimeout(res, pageWaitTime))
+          return document.body.clientHeight > scrollTop + 1080 ? true : false
+        },
+        scrollStep,
+        pageWaitTime
+      )
     }
     // 查找到所有已经被订阅的文章列表
     const subList = await page.evaluate(() => {
@@ -98,16 +103,21 @@ async function searchCourse(course, subList) {
     await page.waitForSelector('.article-item-title')
 
     let scrollEnable = true
-    let scrollStep = 1000 //每次滚动的步长
+
     // 滚动页面
     while (scrollEnable) {
-      scrollEnable = await page.evaluate(async scrollStep => {
-        let scrollTop = document.scrollingElement.scrollTop
-        document.scrollingElement.scrollTop = scrollTop + scrollStep
-        await new Promise(res => setTimeout(res, 600))
-        return document.body.clientHeight > scrollTop + 1080 ? true : false
-      }, scrollStep)
+      scrollEnable = await page.evaluate(
+        async (scrollStep, pageWaitTime) => {
+          let scrollTop = document.scrollingElement.scrollTop
+          document.scrollingElement.scrollTop = scrollTop + scrollStep
+          await new Promise(res => setTimeout(res, pageWaitTime))
+          return document.body.clientHeight > scrollTop + 1080 ? true : false
+        },
+        scrollStep,
+        pageWaitTime
+      )
     }
+    await new Promise(res => setTimeout(res, scrollStep))
     // 拿到所有的文章列表
     const articleList = await page.evaluate(() => {
       return [...document.querySelectorAll('.article-item')].map(item => {
@@ -165,17 +175,21 @@ async function pageToFile(articleList, course, basePath, fileType) {
       await articlePage.goto(a.href)
 
       let scrollEnable = true
-      let scrollStep = 1000 //每次滚动的步长
+
       // 滚动
       while (scrollEnable) {
-        scrollEnable = await page.evaluate(async scrollStep => {
-          let scrollTop = document.scrollingElement.scrollTop
-          document.scrollingElement.scrollTop = scrollTop + scrollStep
-          await new Promise(res => setTimeout(res, 500))
-          return document.body.clientHeight > scrollTop + 1080 ? true : false
-        }, scrollStep)
+        scrollEnable = await page.evaluate(
+          async (scrollStep, pageWaitTime) => {
+            let scrollTop = document.scrollingElement.scrollTop
+            document.scrollingElement.scrollTop = scrollTop + scrollStep
+            await new Promise(res => setTimeout(res, pageWaitTime))
+            return document.body.clientHeight > scrollTop + 1080 ? true : false
+          },
+          scrollStep,
+          pageWaitTime
+        )
       }
-      await new Promise(res => setTimeout(res, 600))
+      await new Promise(res => setTimeout(res, scrollStep))
       // 打印
       if (fileType == 'pdf') {
         await articlePage.pdf({ path: path.join(basePath, `${a.title}.pdf`) })
