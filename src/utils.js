@@ -1,3 +1,8 @@
+
+/**
+ * 获取账号名密码配置
+ * @returns {Array}
+ */
 exports.getAccountPromptList = function() {
   return [
     {
@@ -27,6 +32,12 @@ exports.getAccountPromptList = function() {
     }
   ]
 }
+
+/**
+ * 搜索课程列表的配置
+ * @param {Array} choices
+ * @returns {Array}
+ */
 exports.getCoursePromptList = function(choices) {
   return [
     {
@@ -37,6 +48,11 @@ exports.getCoursePromptList = function(choices) {
     }
   ]
 }
+
+/**
+ * 目录配置
+ * @returns {Array}
+ */
 exports.getCoursePathPromptList = function() {
   return [
     {
@@ -47,6 +63,10 @@ exports.getCoursePathPromptList = function() {
   ]
 }
 
+/**
+ * 输出类型配置
+ * @returns {Array}
+ */
 exports.getOutputFileType = function() {
   return [
     {
@@ -55,6 +75,20 @@ exports.getOutputFileType = function() {
       choices: ['pdf', 'png'],
       default: 'pdf',
       message: '输出的文件类型（默认 pdf ）：'
+    }
+  ]
+}
+/**
+ * 输出类型配置
+ * @returns {Array}
+ */
+exports.getIsRepeatType = function() {
+  return [
+    {
+      type: 'confirm',
+      name: 'isRepeat',
+      default: 'Y',
+      message: '是否继续搜索课程：'
     }
   ]
 }

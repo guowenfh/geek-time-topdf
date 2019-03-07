@@ -10,6 +10,11 @@ const pageWaitTime = 1200 // 每次滚动页面等待下一次滚动的时间
 let browser
 let page
 
+/**
+ * 启动 puppeteer 开始登陆
+ * @param {Object} account
+ * @returns {Promise}
+ */
 async function start(account) {
   try {
     browser = await puppeteer.launch({
@@ -20,26 +25,41 @@ async function start(account) {
     // 打开新页面
     page = await browser.newPage()
     await page.setViewport({
-      width: 1200,
+      width: 1380,
       height: 800
     })
-    await page.goto('https://time.geekbang.org/')
-    await page.waitForSelector('.control', { timeout: 60000 })
+    // 设置头加上跳转
+    await page.setExtraHTTPHeaders({
+      Origin:'https://time.geekbang.org',
+      'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
+    })
+    await page.goto('https://time.geekbang.org/', { referer:'https://time.geekbang.org/' })
+    await page.waitForSelector('.control')
+
     // 点击登录
     page.click('.control a.pc')
-    // 页面跳转
+
+    // 页面跳转,现在登陆改版了
     await page.waitForNavigation()
-    await page.waitForSelector('.nw-phone-wrap .nw-input', { timeout: 60000 })
-    // 登录
+    await page.waitForSelector('.nw-phone-wrap .nw-input')
+
+    // 还是走老的密码登陆
+    await page.click('.forget a')
+    await new Promise(res => setTimeout(res, 1000))
+    await page.waitForSelector('.input-wrap .input')
+
+    // 登录输入账号密码
     await page.type('.nw-phone-wrap .nw-input', String(account.phone))
     await page.type('.input-wrap .input', account.password, { delay: 20 })
     page.click('.mybtn')
+
     // 页面跳转回来
     await page.waitForNavigation()
     //  第一个卡片被渲染
     await page.waitForSelector('.column-list')
 
     let scrollEnable = true
+    console.log('正在查找课程列表...')
     // 滚动到页面最底部，以保证所有的课程都被加载
     while (scrollEnable) {
       scrollEnable = await page.evaluate(
@@ -47,7 +67,7 @@ async function start(account) {
           let scrollTop = document.scrollingElement.scrollTop
           document.scrollingElement.scrollTop = scrollTop + scrollStep
           await new Promise(res => setTimeout(res, pageWaitTime))
-          return document.body.clientHeight > scrollTop + 1080 ? true : false
+          return document.body.clientHeight > scrollTop + 2000 ? true : false
         },
         scrollStep,
         pageWaitTime
@@ -59,6 +79,7 @@ async function start(account) {
         .map((item, index) => ({
           title: item.querySelector('h6').innerText.trim(),
           index: index,
+          link: item.querySelector('a').getAttribute('href'),
           isSubscibe:
             item.innerText.indexOf('已订阅') !== -1 ||
             item.innerText.indexOf('已购买') !== -1
@@ -78,58 +99,53 @@ async function start(account) {
  * 确定需要打印的课程，输出课程目录
  * @param {String} course 搜索的课程
  * @param {Array} subList 已经订阅的课程列表
- * @returns
+ * @returns {Promise}
  */
 async function searchCourse(course, subList) {
   try {
-    console.log('搜索中, 请耐心等待...')
+    console.log('搜索中文章列表中, 请耐心等待...')
     const curr = subList.find(item => item.title.indexOf(course.trim()) !== -1)
     if (!curr) throw Error('no search course')
-    let browserCreated = false
-    // 在点击之前监听浏览器的新建窗口的事件
-    browser.once('targetcreated', () => {
-      browserCreated = true
+    // 打开一个新窗口
+    let coursePage = await browser.newPage()
+    await coursePage.setExtraHTTPHeaders({
+      Origin:'https://time.geekbang.org',
+      'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
     })
-    // await page.goto(`https://time.geekbang.org${curr.link}`) // 现在连接 html 上没有连接了
-    // 点击标题跳转
-    await page.tap(`.column-list>li:nth-child(${curr.index + 1}) h6`)
-    // 等待新建页面
-    while (!browserCreated) {
-      await new Promise(res => setTimeout(res, 1000))
-    }
-    const pageList = await browser.pages()
-    // 新建的页面就是我们需要的
-    page = pageList[pageList.length - 1]
-    await page.waitForSelector('.article-item-title')
+    await coursePage.goto(`https:${curr.link}`.replace('/intro', ''), { referer:'https://time.geekbang.org/' }) // 现在连接 html 上没有连接了
+
+    await new Promise(res => setTimeout(res, 2000))
+    await coursePage.waitForSelector('.article-item-title')
 
     let scrollEnable = true
 
     // 滚动页面
     while (scrollEnable) {
-      scrollEnable = await page.evaluate(
+      scrollEnable = await coursePage.evaluate(
         async (scrollStep, pageWaitTime) => {
           let scrollTop = document.scrollingElement.scrollTop
           document.scrollingElement.scrollTop = scrollTop + scrollStep
           await new Promise(res => setTimeout(res, pageWaitTime))
-          return document.body.clientHeight > scrollTop + 1080 ? true : false
+          return document.body.clientHeight > scrollTop + 2000 ? true : false
         },
         scrollStep,
         pageWaitTime
       )
     }
-    await new Promise(res => setTimeout(res, scrollStep))
+    await new Promise(res => setTimeout(res, pageWaitTime))
+
     // 拿到所有的文章列表
-    const articleList = await page.evaluate(() => {
+    const articleList = await coursePage.evaluate(() => {
       return [...document.querySelectorAll('.article-item')].map(item => {
-        var href = item.querySelector('a').href
-        var title = item
+        let href = item.querySelector('a').href
+        let title = item
           .querySelector('h2')
           .innerText.replace(/\u{2F}|\u{5C}|\u{7C}|\u{22}/gu, '_')
           .replace(/\s+/g, '')
         return { href, title }
       })
     })
-    // page.close()
+    await coursePage.close()
     console.log(
       `《${curr.title}》:一共查找到 ( ${articleList.length} ) 篇文章。`
     )
@@ -160,19 +176,22 @@ async function pageToFile(articleList, course, basePath, fileType) {
       await mkdir(basePath)
     }
     // 进度条
-    const bar = new ProgressBar('  printing: :current/:total [:bar]  :title', {
+    const progressBar = new ProgressBar('  printing: :current/:total [:bar]  :title', {
       complete: '=',
       width: 20,
       total: articleList.length
     })
-    // 这里也可以使用 Promise.all，但cpu可能吃紧，谨慎操作
+    // 这里也可以使用 Promise.all，但 cpu 和网络可能都吃紧，谨慎操作
     for (let i = 0, len = articleList.length; i < len; i++) {
       let articlePage = await browser.newPage()
 
-      var a = articleList[i]
-      bar.tick({ title: a.title })
-
-      await articlePage.goto(a.href)
+      let a = articleList[i]
+      progressBar.tick({ title: a.title })
+      await articlePage.setExtraHTTPHeaders({
+        Origin:'https://time.geekbang.org',
+        'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
+      })
+      await articlePage.goto(a.href, { referer:'https://time.geekbang.org/' })
 
       let scrollEnable = true
 
@@ -203,14 +222,18 @@ async function pageToFile(articleList, course, basePath, fileType) {
 
       articlePage.close()
     }
-    console.log('任务完成')
-    page.close()
-    browser.close()
-    process.exit()
+    console.log(`《${course}》:任务完成`)
+    return true
   } catch (error) {
     console.error('打印出错', error)
   }
 }
+function colse() {
+  page.close()
+  browser.close()
+  process.exit()
+}
 exports.start = start
 exports.searchCourse = searchCourse
 exports.pageToFile = pageToFile
+exports.colse = colse
