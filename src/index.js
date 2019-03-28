@@ -22,24 +22,19 @@ const start = async () => {
  * @param {Array} subList 搜索到的课程列表
  * @returns
  */
-const searchPrint = async (subList) => {
+const searchPrint = async subList => {
   // 选择打印的课程
-  const { course } = await inquirer.prompt(
-    utils.getCoursePromptList(subList.map(item => item.title))
-  )
+  const { course } = await inquirer.prompt(utils.getCoursePromptList(subList.map(item => item.title)))
   // 搜索文章列表
-  const { courseName, articleList } = await app.searchCourse(
-    course,
-    subList
-  )
+  const { courseName, articleList } = await app.searchCourse(course, subList)
   // 设置打印路径
   const { path } = await inquirer.prompt(utils.getCoursePathPromptList())
   const { fileType } = await inquirer.prompt(utils.getOutputFileType())
   await app.pageToFile(articleList, courseName, path, fileType)
-  const {isRepeat} = await inquirer.prompt(utils.getIsRepeatType())
-  if(isRepeat){
+  const { isRepeat } = await inquirer.prompt(utils.getIsRepeatType())
+  if (isRepeat) {
     await searchPrint(subList)
-  }else{
+  } else {
     return app.colse()
   }
 }

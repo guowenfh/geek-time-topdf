@@ -6,10 +6,10 @@ const mkdir = util.promisify(fs.mkdir)
 const ProgressBar = require('progress')
 
 const scrollStep = 1000 //每次滚动的步长
-const pageWaitTime = 2000 // 每次滚动页面等待下一次滚动的时间
+const pageWaitTime = 1200 // 每次滚动页面等待下一次滚动的时间
+const courseWaitTime = 2000 // 搜索一个课程有多少小姐时使用
 let browser
 let page
-
 /**
  * 启动 puppeteer 开始登陆
  * @param {Object} account
@@ -20,6 +20,7 @@ async function start(account) {
     browser = await puppeteer.launch({
       ignoreHTTPSErrors: true,
       headless: true, // 是否启用无头模式页面
+      // devtools:true,
       timeout: 0
     })
     // 打开新页面
@@ -30,10 +31,13 @@ async function start(account) {
     })
     // 设置头加上跳转
     await page.setExtraHTTPHeaders({
-      Origin:'https://time.geekbang.org',
-      'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
+      Origin: 'https://time.geekbang.org',
+      'User-Agent':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
     })
-    await page.goto('https://time.geekbang.org/', { referer:'https://time.geekbang.org/' })
+    await page.goto('https://time.geekbang.org/', {
+      referer: 'https://time.geekbang.org/'
+    })
     await page.waitForSelector('.control')
 
     // 点击登录
@@ -59,7 +63,7 @@ async function start(account) {
     await page.waitForSelector('.column-list')
 
     let scrollEnable = true
-    console.log('正在查找课程列表...')
+    console.log('正在查找课程列表, 请耐心等待...')
     // 滚动到页面最底部，以保证所有的课程都被加载
     while (scrollEnable) {
       scrollEnable = await page.evaluate(
@@ -67,12 +71,33 @@ async function start(account) {
           let scrollTop = document.scrollingElement.scrollTop
           document.scrollingElement.scrollTop = scrollTop + scrollStep
           await new Promise(res => setTimeout(res, pageWaitTime))
-          return document.body.clientHeight > scrollTop + 2000 ? true : false
+          // 如果整个 body 的高比当前滚动的 scrollTop 高 2000 以上那么就进行下一轮
+          if (document.body.clientHeight > scrollTop + 2000) {
+            try {
+              // 添加滚动步伐
+              document.scrollingElement.scrollTop = scrollTop + scrollStep
+              // 检查最后的 footer 有没有在 dom 中显示，1s 的等待时间
+              await page.waitForSelector('.page-footer', {
+                visible: true,
+                timeout: 1000
+              })
+              // 滚动结束
+              return false
+            } catch (error) {
+              // 版权信息没显示的话表示 还没滚动到底，滚动一下
+              document.scrollingElement.scrollTop = scrollTop + scrollStep
+              return true
+            }
+          }
+          document.scrollingElement.scrollTop = scrollTop + scrollStep
+          // 滚动结束
+          return false
         },
         scrollStep,
         pageWaitTime
       )
     }
+
     // 查找到所有已经被订阅的文章列表
     const subList = await page.evaluate(() => {
       return [...document.querySelectorAll('.column-list>li')]
@@ -80,15 +105,11 @@ async function start(account) {
           title: item.querySelector('h6').innerText.trim(),
           index: index,
           link: item.querySelector('a').getAttribute('href'),
-          isSubscibe:
-            item.innerText.indexOf('已订阅') !== -1 ||
-            item.innerText.indexOf('已购买') !== -1
+          isSubscibe: item.innerText.indexOf('已订阅') !== -1 || item.innerText.indexOf('已购买') !== -1
         }))
         .filter(item => item.isSubscibe)
     })
-    console.log(
-      subList.length ? `共查找到${subList.length}门课程。` : '无已订阅课程'
-    )
+    console.log(subList.length ? `共查找到${subList.length}门课程。` : '无已订阅课程')
     return subList
   } catch (error) {
     console.error('用户登录失败', error)
@@ -109,10 +130,13 @@ async function searchCourse(course, subList) {
     // 打开一个新窗口
     let coursePage = await browser.newPage()
     await coursePage.setExtraHTTPHeaders({
-      Origin:'https://time.geekbang.org',
-      'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
+      Origin: 'https://time.geekbang.org',
+      'User-Agent':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
     })
-    await coursePage.goto(`https:${curr.link}`.replace('/intro', ''), { referer:'https://time.geekbang.org/' }) // 现在连接 html 上没有连接了
+    await coursePage.goto(`https:${curr.link}`.replace('/intro', ''), {
+      referer: 'https://time.geekbang.org/'
+    }) // 现在连接 html 上没有连接了
 
     await new Promise(res => setTimeout(res, 2000))
     await coursePage.waitForSelector('.article-item-title')
@@ -122,14 +146,14 @@ async function searchCourse(course, subList) {
     // 滚动页面
     while (scrollEnable) {
       scrollEnable = await coursePage.evaluate(
-        async (scrollStep, pageWaitTime) => {
+        async (scrollStep, courseWaitTime) => {
           let scrollTop = document.scrollingElement.scrollTop
           document.scrollingElement.scrollTop = scrollTop + scrollStep
-          await new Promise(res => setTimeout(res, pageWaitTime))
+          await new Promise(res => setTimeout(res, courseWaitTime))
           return document.body.clientHeight > scrollTop + 2000 ? true : false
         },
         scrollStep,
-        pageWaitTime
+        courseWaitTime
       )
     }
     await new Promise(res => setTimeout(res, pageWaitTime))
@@ -146,9 +170,7 @@ async function searchCourse(course, subList) {
       })
     })
     await coursePage.close()
-    console.log(
-      `《${curr.title}》:一共查找到 ( ${articleList.length} ) 篇文章。`
-    )
+    console.log(`《${curr.title}》:一共查找到 ( ${articleList.length} ) 篇文章。`)
     return { courseName: curr.title, articleList }
   } catch (error) {
     console.error('未搜索到课程', error)
@@ -188,10 +210,11 @@ async function pageToFile(articleList, course, basePath, fileType) {
       let a = articleList[i]
       progressBar.tick({ title: a.title })
       await articlePage.setExtraHTTPHeaders({
-        Origin:'https://time.geekbang.org',
-        'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
+        Origin: 'https://time.geekbang.org',
+        'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
       })
-      await articlePage.goto(a.href, { referer:'https://time.geekbang.org/' })
+      await articlePage.goto(a.href, { referer: 'https://time.geekbang.org/' })
 
       let scrollEnable = true
 
