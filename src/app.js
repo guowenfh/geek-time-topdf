@@ -6,7 +6,7 @@ const mkdir = util.promisify(fs.mkdir)
 const ProgressBar = require('progress')
 
 const scrollStep = 1000 //每次滚动的步长
-const pageWaitTime = 1200 // 每次滚动页面等待下一次滚动的时间
+const pageWaitTime = 2000 // 每次滚动页面等待下一次滚动的时间
 let browser
 let page
 
