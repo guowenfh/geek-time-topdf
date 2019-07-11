@@ -1,3 +1,5 @@
+const fs = require('fs')
+const path = require('path')
 /**
  * 获取账号名密码配置
  * @returns {Array}
@@ -6,7 +8,7 @@ exports.getAccountPromptList = function() {
   return [
     {
       type: 'input',
-      name: 'phone',
+      name: 'cellphone',
       message: '请输入你的手机号码：',
       validate: function(input) {
         // this.async() is inquirer use
@@ -90,4 +92,28 @@ exports.getIsRepeatType = function() {
       message: '是否继续搜索课程：'
     }
   ]
+}
+/**
+ * 保存cookie到配置文件
+ * @returns {Array}
+ */
+exports.saveCookie = function(cookieArr) {
+  cookieArr = cookieArr.map(item => {
+    // 在puppeteer设置cookie的时候必须设置url，去掉时间，避免
+    item.url = 'https://time.geekbang.org'
+    delete item.expires
+    delete item.maxAge
+    return item
+  })
+  const str = `module.exports = {
+    cookie: ${JSON.stringify(cookieArr, null, 2)}
+    }`
+  fs.writeFileSync(path.resolve(__dirname, '../config.js'), str)
+}
+/**
+ * 调试用
+ * @returns {Array}
+ */
+exports.savePage = function(apge) {
+  fs.writeFileSync(path.resolve(__dirname, '../page.html'), apge)
 }
