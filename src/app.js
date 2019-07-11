@@ -15,7 +15,7 @@ async function initBrowser() {
     browser = await puppeteer.launch({
       ignoreHTTPSErrors: true,
       headless: true, // 是否启用无头模式页面
-      timeout: 0
+      timeout: 30000
     })
     page = await browser.newPage()
     // 设置头加上跳转
@@ -31,7 +31,7 @@ async function initBrowser() {
   }
 }
 
-async function downArticke({ article, pagePrint }) {
+async function downArticle({ article, pagePrint }) {
   if (!browser) {
     await initBrowser()
   }
@@ -80,7 +80,7 @@ async function pageToFile(articleList, course, basePath, fileType) {
         console.log(`${fileFullName} 已经存在， 进行下一个`)
         continue
       } catch (e) {
-        console.log('开始下载')
+        // console.log('开始下载')
       }
       await setPageInfo(articlePage, a.href)
       await new Promise(res => setTimeout(res, 2000))
@@ -139,7 +139,7 @@ async function setCss(pageInstance) {
   })
 }
 
-function colse() {
+function close() {
   page.close()
   browser.close()
   process.exit()
@@ -154,5 +154,5 @@ function filterName(name) {
   const reg = /[`~!@#$%^&*()_+<>?:"{},./;'[\]]/im
   return name.replace(reg, '')
 }
-exports.downArticke = downArticke
-exports.colse = colse
+exports.downArticle = downArticle
+exports.close = close

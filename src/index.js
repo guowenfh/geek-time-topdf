@@ -50,7 +50,7 @@ const searchPrint = async subList => {
   const { course } = await inquirer.prompt(courses)
   const { path } = await inquirer.prompt(utils.getCoursePathPromptList())
   const { fileType } = await inquirer.prompt(utils.getOutputFileType())
-  await app.downArticke({
+  await app.downArticle({
     article: { course, subList },
     pagePrint: {
       path,
@@ -61,7 +61,7 @@ const searchPrint = async subList => {
   if (isRepeat) {
     searchPrint(subList)
   } else {
-    return app.colse()
+    return app.close()
   }
 }
 program

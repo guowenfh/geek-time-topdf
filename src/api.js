@@ -13,10 +13,7 @@ function updateHeaders(cookie = []) {
     Host: 'time.geekbang.org',
     'Content-Type': 'application/json',
     Origin: 'https://time.geekbang.org',
-    Cookie: cookie.reduce((a, b) => {
-      a = a + `${b.name}=${b.value};`
-      return a
-    }, ''),
+    Cookie: cookie.reduce((a, b) => a + `${b.name}=${b.value};`, ''),
     Referer: 'https://account.geekbang.org/dashboard/buy',
     'User-Agent':
       ' Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
@@ -48,8 +45,7 @@ function getList() {
   return axiosInstance.get(urls.productsAll).then(res => {
     const data = res.data.data
     return data[0].list.map((item, index) => {
-      item.index = index
-      return item
+      return { ...item, index }
     })
   })
 }
