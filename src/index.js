@@ -3,18 +3,40 @@ const inquirer = require('inquirer')
 const utils = require('./utils')
 const pkg = require('../package.json')
 const app = require('./app')
+const api = require('./api.js')
+const cookie = require('../config.js').cookie
 const start = async () => {
-  console.log('打印 pdf 初始化需要填写信息：手机号码，密码。')
   try {
     // 获取登录帐号信息
-    const account = await inquirer.prompt(utils.getAccountPromptList())
-    console.log('正在登录中，请耐心等候..')
-    // 登录，并且拿到已订阅的列表
-    const subList = await app.start(account)
+    if (!cookie.length) {
+      await login()
+    }
+    const subList = await getList()
+    console.log(subList.length ? `共查找到${subList.length}门课程。` : '无已订阅课程')
     await searchPrint(subList)
   } catch (error) {
     console.error(error)
   }
+}
+
+async function login() {
+  const account = await inquirer.prompt(utils.getAccountPromptList())
+  await api.login(account).catch(e => {
+    console.log(e)
+    return login()
+  })
+}
+async function getList() {
+  let data
+  while (!data) {
+    try {
+      data = await api.getList()
+      break
+    } catch (err) {
+      await login()
+    }
+  }
+  return data
 }
 
 /**
@@ -24,16 +46,20 @@ const start = async () => {
  */
 const searchPrint = async subList => {
   // 选择打印的课程
-  const { course } = await inquirer.prompt(utils.getCoursePromptList(subList.map(item => item.title)))
-  // 搜索文章列表
-  const { courseName, articleList } = await app.searchCourse(course, subList)
-  // 设置打印路径
+  const courses = utils.getCoursePromptList(subList.map(item => item.title))
+  const { course } = await inquirer.prompt(courses)
   const { path } = await inquirer.prompt(utils.getCoursePathPromptList())
   const { fileType } = await inquirer.prompt(utils.getOutputFileType())
-  await app.pageToFile(articleList, courseName, path, fileType)
+  await app.downArticke({
+    article: { course, subList },
+    pagePrint: {
+      path,
+      fileType
+    }
+  })
   const { isRepeat } = await inquirer.prompt(utils.getIsRepeatType())
   if (isRepeat) {
-    await searchPrint(subList)
+    searchPrint(subList)
   } else {
     return app.colse()
   }
