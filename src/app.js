@@ -96,6 +96,10 @@ async function pageToFile(articleList, course, basePath, fileType) {
 }
 
 async function setPageInfo(pageInstance, href) {
+  await pageInstance.setViewport({
+    width: 1380,
+    height: 800
+  })
   await pageInstance.setExtraHTTPHeaders({
     Origin: 'https://time.geekbang.org',
     'User-Agent':
@@ -131,11 +135,38 @@ async function printPage(pageInstance, fileFullPath, fileType) {
  */
 async function setCss(pageInstance) {
   await pageInstance.evaluate(async () => {
-    const st = document.createElement('style')
-    document.body.append(st)
-    st.innerHTML = `._1ysv2txS_0, ._1Q_izgym_0, .ibY_sXau_0 {
-            position: initial;
-      } ._3-b6SqNP_0, ._1QFlQFbV_0, .rBDXhMZ0_0, .aWoEm1VW_0, ._352wsGxH_0, .Wz6esVdU_0, ._1Bg5E78Y_0 { display: none !important;} `
+    const $ = document.querySelector.bind(document)
+    const contentDom = $('#app > div >div:nth-child(2)')
+    const hideDomMap = {
+      // 去订阅文字
+      goSubscriptionText: $('.bottom'),
+      // 侧边栏菜单
+      sideMenu: $('#app > div >div:nth-child(1)'),
+      // 音频播放
+      audio: contentDom.querySelector('div:nth-child(2) > div:nth-child(1) > div:nth-child(3) > div:nth-child(2)'),
+      // 顶部菜单
+      topBar: contentDom.querySelector('div'),
+      // 评论输入框
+      commentInputBlock: $('#app > div >div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(4)'),
+      // 两侧导航icon
+      iconLeft: $('#app > div >div:nth-child(2) > div:nth-child(3)'),
+      iconRight: $('#app > div >div:nth-child(2) > div:nth-child(4)')
+    }
+    const fixPosDomMap = {
+      body: $('#app > div'),
+      bodyChild: $('#app > div >div:nth-child(2)'),
+      bodyLast: $('#app > div >div:nth-child(2) >div:nth-child(2)')
+    }
+    setStyleObjetc(hideDomMap, 'display', 'none')
+    setStyleObjetc(fixPosDomMap, 'position', 'initial')
+
+    function setStyleObjetc(obj, attr, value) {
+      Object.values(obj).map(dom => {
+        if (dom) {
+          dom.style[attr] = value
+        }
+      })
+    }
   })
 }
 
