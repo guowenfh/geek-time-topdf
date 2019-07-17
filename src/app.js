@@ -1,39 +1,18 @@
-const puppeteer = require('puppeteer')
 const fs = require('fs')
 const path = require('path')
 const util = require('util')
 const mkdir = util.promisify(fs.mkdir)
 const access = util.promisify(fs.access)
-const cookie = require('../config').cookie
 const api = require('./api.js')
 const ProgressBar = require('progress')
-let browser
-let page
-
-async function initBrowser() {
-  try {
-    browser = await puppeteer.launch({
-      ignoreHTTPSErrors: true,
-      headless: true, // 是否启用无头模式页面
-      timeout: 30000
-    })
-    page = await browser.newPage()
-    // 设置头加上跳转
-    await page.setUserAgent(
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
-    )
-    await page.setExtraHTTPHeaders({
-      Origin: 'https://account.geekbang.org'
-    })
-    await page.setCookie(...cookie)
-  } catch (error) {
-    console.error('初始化浏览器失败', error)
-  }
-}
-
+const pageObj = require('./page.js')
+const queue = require('./queue.js')
+const concurrent = 2 // 并发数量
+const restCount = 20 // 休息防止和谐
+let pagePool
 async function downArticle({ article, pagePrint }) {
-  if (!browser) {
-    await initBrowser()
+  if (!pagePool) {
+    pagePool = await pageObj.initPage(concurrent)
   }
   const curr = article.subList.find(item => item.title.indexOf(article.course.trim()) !== -1)
   let task = await api.getArticle(curr.extra.column_id)
@@ -50,44 +29,39 @@ async function downArticle({ article, pagePrint }) {
  */
 async function pageToFile(articleList, course, basePath, fileType) {
   try {
-    // 路径处理
-    if (basePath) {
-      basePath = path.join(path.resolve(path.normalize(basePath)), course)
-    } else {
-      basePath = path.join(process.cwd(), course)
-    }
-    const err = fs.existsSync(basePath)
-    if (!err) {
-      await mkdir(basePath)
-    }
+    basePath = await fixPath(basePath, course)
     // 进度条
-    const progressBar = new ProgressBar('  printing: :current/:total [:bar]  :title', {
-      complete: '=',
-      width: 20,
-      total: articleList.length
-    })
-    // 这里也可以使用 Promise.all，但 cpu 和网络可能都吃紧，谨慎操作
-    for (let i = 0, len = articleList.length; i < len; i++) {
-      let articlePage = await browser.newPage()
-      let a = articleList[i]
-      const fileName = filterName(`${i}-${a.article_title}`)
-      const fileFullName = `${fileName}.${fileType}`
-      const fileFullPath = path.join(basePath, fileFullName)
-      progressBar.tick({ title: a.article_title })
-      // 检查当前目录中是否存在该文件。
-      try {
-        await access(fileFullPath, fs.constants.F_OK)
-        console.log(`${fileFullName} 已经存在， 进行下一个`)
-        continue
-      } catch (e) {
-        // console.log('开始下载')
+    const progressBar = getProgressBar(articleList.length)
+    const queueTask = articleList.map((article, index) => {
+      return async () => {
+        let articlePage = await pageObj.getPage()
+        const { article_title: title, href } = article
+        const fileName = filterName(`${index}-${title}`)
+        const fileFullName = `${fileName}.${fileType}`
+        const fileFullPath = path.join(basePath, fileFullName)
+        progressBar.tick({ title })
+        console.log('title', title)
+        // 检查当前目录中是否存在该文件。
+        try {
+          await access(fileFullPath, fs.constants.F_OK)
+          console.log(`${fileFullName} 已经存在， 进行下一个`)
+          pageObj.hirePage(articlePage)
+          return Promise.resolve()
+        } catch (e) {
+          // console.log('开始下载')
+        }
+        if (!(index % restCount)) {
+          console.log('休息一下')
+          await new Promise(res => setTimeout(res, 10000))
+        }
+        await setPageInfo(articlePage, href)
+        await new Promise(res => setTimeout(res, 500))
+        // 打印
+        await printPage(articlePage, fileFullPath, fileType)
+        pageObj.hirePage(articlePage)
       }
-      await setPageInfo(articlePage, a.href)
-      await new Promise(res => setTimeout(res, 2000))
-      // 打印
-      await printPage(articlePage, fileFullPath, fileType)
-      articlePage.close()
-    }
+    })
+    await queue(queueTask, concurrent)
     console.log(`《${course}》:任务完成`)
     return true
   } catch (error) {
@@ -96,20 +70,10 @@ async function pageToFile(articleList, course, basePath, fileType) {
 }
 
 async function setPageInfo(pageInstance, href) {
-  await pageInstance.setViewport({
-    width: 1380,
-    height: 800
-  })
-  await pageInstance.setExtraHTTPHeaders({
-    Origin: 'https://time.geekbang.org',
-    'User-Agent':
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
-  })
   await pageInstance.goto(href, {
     referer: 'https://time.geekbang.org/',
     waitUntil: 'networkidle0'
   })
-
   await setCss(pageInstance)
 }
 
@@ -170,11 +134,28 @@ async function setCss(pageInstance) {
   })
 }
 
-function close() {
-  page.close()
-  browser.close()
-  process.exit()
+async function fixPath(basePath, course) {
+  // 路径处理
+  if (basePath) {
+    basePath = path.join(path.resolve(path.normalize(basePath)), course)
+  } else {
+    basePath = path.join(process.cwd(), course)
+  }
+  const err = fs.existsSync(basePath)
+  if (!err) {
+    await mkdir(basePath)
+  }
+  return basePath
 }
+
+function getProgressBar(length) {
+  return new ProgressBar('  printing: :current/:total [:bar]  :title', {
+    complete: '=',
+    width: 20,
+    total: length
+  })
+}
+
 /**
  *格式化文件名，防止特殊字符导致错误
  *
@@ -185,5 +166,10 @@ function filterName(name) {
   const reg = /[`~!@#$%^&*()_+<>?:"{},./;'[\]]/im
   return name.replace(reg, '')
 }
+
+function close() {
+  process.exit()
+}
+
 exports.downArticle = downArticle
 exports.close = close
