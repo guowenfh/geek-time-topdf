@@ -1,6 +1,6 @@
 {
   "name": "geek-time-topdf",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "use puppeteer geek time course to pdf",
   "main": "index.js",
   "scripts": {
