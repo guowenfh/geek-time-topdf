@@ -4,7 +4,7 @@ const setCookie = require('set-cookie-parser')
 const utils = require('./utils')
 const urls = {
   login: 'https://account.geekbang.org/account/ticket/login',
-  productsAll: 'https://time.geekbang.org/serv/v1/my/products/all',
+  productsAll: 'https://time.geekbang.org/serv/v1/my/products/list',
   articles: 'https://time.geekbang.org/serv/v1/column/articles'
 }
 const axiosInstance = axios.create({})
@@ -42,9 +42,10 @@ axiosInstance.interceptors.response.use(
 )
 
 function getList() {
-  return axiosInstance.get(urls.productsAll).then(res => {
+  // TODO  不知道分页的页码传输 先写1000
+  return axiosInstance.get(urls.productsAll, { data: { size: 1000, nav_id: 1 } }).then(res => {
     const data = res.data.data
-    return data[0].list.map((item, index) => {
+    return data.list.map((item, index) => {
       return { ...item, index }
     })
   })
