@@ -182,7 +182,7 @@ function close() {
  * @returns
  */
 function filterName(name) {
-  const reg = /[`~!@#$%^&*()_+<>?:"{},./;'[\]]/im
+  const reg = /[`~!@#$%^&*()_+<>?:"{},./;'[\]]/gim
   return name.replace(reg, '')
 }
 exports.downArticle = downArticle
