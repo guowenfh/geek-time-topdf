@@ -144,6 +144,8 @@ async function setCss(pageInstance) {
       sideMenu: $('#app > div >div:nth-child(1)'),
       // 音频播放
       audio: contentDom.querySelector('div:nth-child(2) > div:nth-child(1) > div:nth-child(3) > div:nth-child(2)'),
+      // 课程推荐
+      courseAD: contentDom.querySelector('div:nth-child(2) > div:nth-child(1) > div:nth-child(3) > div:nth-child(4)'),
       // 顶部菜单
       topBar: contentDom.querySelector('div'),
       // 评论输入框
