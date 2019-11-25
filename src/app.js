@@ -4,9 +4,9 @@ const path = require('path')
 const util = require('util')
 const mkdir = util.promisify(fs.mkdir)
 const access = util.promisify(fs.access)
-const cookie = require('../config').cookie
 const api = require('./api.js')
 const ProgressBar = require('progress')
+const utils = require('./utils')
 let browser
 let page
 
@@ -25,6 +25,7 @@ async function initBrowser() {
     await page.setExtraHTTPHeaders({
       Origin: 'https://account.geekbang.org'
     })
+    const cookie = utils.getCookie()
     await page.setCookie(...cookie)
   } catch (error) {
     console.error('初始化浏览器失败', error)

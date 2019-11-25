@@ -1,7 +1,6 @@
 const axios = require('axios')
-const config = require('../config.js')
 const setCookie = require('set-cookie-parser')
-const utils = require('./utils')
+const { saveCookie, getCookie } = require('./utils')
 const urls = {
   login: 'https://account.geekbang.org/account/ticket/login',
   productsAll: 'https://time.geekbang.org/serv/v1/my/products/list',
@@ -20,7 +19,7 @@ function updateHeaders(cookie = []) {
   }
 }
 
-updateHeaders(config.cookie)
+updateHeaders(getCookie())
 
 axiosInstance.interceptors.response.use(
   function(response) {
@@ -95,7 +94,7 @@ function login({ cellphone, password }) {
         return Promise.reject(data.error.msg)
       } else {
         const cookie = setCookie.parse(res)
-        utils.saveCookie(cookie)
+        saveCookie(cookie)
         updateHeaders(cookie)
         return data
       }
@@ -103,7 +102,7 @@ function login({ cellphone, password }) {
 }
 
 function clearEffects() {
-  utils.saveCookie([])
+  saveCookie([])
   updateHeaders([])
 }
 

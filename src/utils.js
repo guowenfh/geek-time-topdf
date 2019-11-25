@@ -95,7 +95,7 @@ exports.getIsRepeatType = function() {
 }
 /**
  * 保存cookie到配置文件
- * @returns {Array}
+ * @returns {undefined}
  */
 exports.saveCookie = function(cookieArr) {
   cookieArr = cookieArr.map(item => {
@@ -105,14 +105,20 @@ exports.saveCookie = function(cookieArr) {
     delete item.maxAge
     return item
   })
-  const str = `module.exports = {
-    cookie: ${JSON.stringify(cookieArr, null, 2)}
-    }`
-  fs.writeFileSync(path.resolve(__dirname, '../config.js'), str)
+  const str = JSON.stringify(cookieArr, null, 2)
+  fs.writeFileSync(path.resolve(__dirname, '../cookie.json'), str)
+}
+/**
+ * 取出cookie到配置文件
+ * @returns {Array}
+ */
+exports.getCookie = function() {
+  const cookieStr = fs.readFileSync(path.resolve(__dirname, '../cookie.json'), 'utf8')
+  return JSON.parse(cookieStr)
 }
 /**
  * 调试用
- * @returns {Array}
+ * @returns {undefined}
  */
 exports.savePage = function(apge) {
   fs.writeFileSync(path.resolve(__dirname, '../page.html'), apge)

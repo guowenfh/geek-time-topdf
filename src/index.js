@@ -4,11 +4,10 @@ const utils = require('./utils')
 const pkg = require('../package.json')
 const app = require('./app')
 const api = require('./api.js')
-const cookie = require('../config.js').cookie
 const start = async () => {
   try {
     // 获取登录帐号信息
-    if (!cookie.length) {
+    if (!utils.getCookie().length) {
       await login()
     }
     const subList = await getList()
