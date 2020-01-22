@@ -72,7 +72,7 @@ async function pageToFile(articleList, course, basePath, fileType) {
       let articlePage = await browser.newPage()
       let a = articleList[i]
       const fileName = filterName(`${i}-${a.article_title}`)
-      const fileFullName = `${fileName}.${fileType}`
+      const fileFullName = `${fileName}.${fileType}`.replace(/\\|\/|:|\*|\?|"|<|>|\|/g, '')
       const fileFullPath = path.join(basePath, fileFullName)
       progressBar.tick({ title: a.article_title })
       // 检查当前目录中是否存在该文件。

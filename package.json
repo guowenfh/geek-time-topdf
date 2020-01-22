@@ -38,7 +38,7 @@
     "husky": "^3.0.0",
     "inquirer": "^6.2.2",
     "progress": "^2.0.3",
-    "puppeteer": "^1.18.1",
+    "puppeteer": "^2.0.0",
     "set-cookie-parser": "^2.3.5"
   },
   "devDependencies": {
