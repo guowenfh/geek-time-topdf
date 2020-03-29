@@ -68,7 +68,10 @@ program
   .command('init')
   .description('打印 pdf 初始化需要填写信息：手机号码，密码。')
   .action(start)
-
+program
+  .command('clear')
+  .description('清除账户信息。')
+  .action(utils.clear)
 program.parse(process.argv)
 if (process.argv.length < 3) {
   program.help()

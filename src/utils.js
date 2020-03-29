@@ -123,3 +123,7 @@ exports.getCookie = function() {
 exports.savePage = function(apge) {
   fs.writeFileSync(path.resolve(__dirname, '../page.html'), apge)
 }
+
+exports.clear = function() {
+  fs.writeFileSync(path.resolve(__dirname, '../cookie.json'), '[]')
+}

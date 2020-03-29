@@ -9,7 +9,8 @@ Do not record any information...
 ```sh
 npm install geek-time-topdf -g  # in china use cnpm 推荐使用 cnpm，加快安装速度
 
-gkpdf init
+gkpdf init # 账号初始化
+gkpdf clear # 清除账号信息
 ```
 
 将你**已经购买**的极客时间的课程，打印为 pdf。
@@ -23,7 +24,7 @@ gkpdf init
 ![instructions](./instructions.png)
 
 changeLogs:
-
+- 4.0.5: feat: 添加 clear 命令。用于切换账号
 - 4.0.4: fix: 修复 windows 下文件名存在非法字符导致的下载出错
 - 4.0.3: fix: 修复课程打印不出来的问题
 - 4.0.2: fix: 课程名称处理正则未全局匹配
