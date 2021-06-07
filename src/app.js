@@ -42,7 +42,7 @@ async function downArticle({ article, pagePrint }) {
   await pageToFile(task, article.course, pagePrint.path, pagePrint.fileType)
 }
 /**
- * 把文件进行打印
+ * Print Page to file
  *
  * @param {Array} articleList 文章列表
  * @param {String} course 打印的课程名称 （文件夹名称
@@ -78,21 +78,21 @@ async function pageToFile(articleList, course, basePath, fileType) {
       // 检查当前目录中是否存在该文件。
       try {
         await access(fileFullPath, fs.constants.F_OK)
-        console.log(`${fileFullName} 已经存在， 进行下一个`)
+        console.log(`${fileFullName} has already existed, next one`)
         continue
       } catch (e) {
-        // console.log('开始下载')
+        console.log('Error : ',e)
       }
       await setPageInfo(articlePage, a.href)
-      await new Promise(res => setTimeout(res, 2000))
-      // 打印
+      await new Promise(res => setTimeout(res, 3000))
+      // Print
       await printPage(articlePage, fileFullPath, fileType)
       articlePage.close()
     }
-    console.log(`《${course}》:任务完成`)
+    console.log(`《${course}》:Download Completed`)
     return true
   } catch (error) {
-    console.error('打印出错', error)
+    console.error('Printing Error: ', error)
   }
 }
 
