@@ -14,6 +14,7 @@ async function initBrowser() {
   try {
     browser = await puppeteer.launch({
       ignoreHTTPSErrors: true,
+      timeout: 30000,
       headless: true // 是否启用无头模式页面
     })
     page = await browser.newPage()
