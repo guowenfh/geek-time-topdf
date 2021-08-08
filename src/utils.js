@@ -6,28 +6,41 @@ const path = require('path')
  */
 exports.getAccountPromptList = function() {
   return [
+    //account number : cellphone
     {
       type: 'input',
       name: 'cellphone',
-      message: '请输入你的手机号码：',
+      message: 'Please input your cellphone：',
       validate: function(input) {
         // this.async() is inquirer use
         var done = this.async()
-        if (isNaN(Number(input))) return done('手机号码必须是数字')
-        if (input.length !== 11) return done('长度必须11位')
+        if (isNaN(Number(input))) return done('input must be number')
         return done(null, true)
       }
     },
+    //password
     {
       type: 'password',
       name: 'password',
-      message: '请输入你的密码：',
+      message: 'Please input your password：',
       validate: function(input) {
         // this.async() is inquirer use
         var done = this.async()
         if (input.length < 6 || input.length > 24) {
-          return done('请输入6-24位的密码')
+          return done('password length is between 6 - 24')
         }
+        return done(null, true)
+      }
+    },
+    //country code
+    {
+      type: 'countryCode',
+      name: 'countryCode',
+      message: 'Please input your country code：',
+      validate: function(input) {
+        // this.async() is inquirer use
+        var done = this.async()
+        if (isNaN(Number(input)) && input.length > 4) return done('country code must be number and not longer than 4 digits')
         return done(null, true)
       }
     }

@@ -14,10 +14,11 @@ async function initBrowser() {
   try {
     browser = await puppeteer.launch({
       ignoreHTTPSErrors: true,
-      headless: true, // 是否启用无头模式页面
-      timeout: 30000
+      timeout: 30000,
+      headless: true // 是否启用无头模式页面
     })
     page = await browser.newPage()
+    await page.setDefaultNavigationTimeout(0)
     // 设置头加上跳转
     await page.setUserAgent(
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
@@ -89,7 +90,7 @@ async function pageToFile(articleList, course, basePath, fileType) {
       await printPage(articlePage, fileFullPath, fileType)
       articlePage.close()
     }
-    console.log(`《${course}》:任务完成`)
+    console.log(`《${course}》: 任务完成`)
     return true
   } catch (error) {
     console.error('打印出错', error)
@@ -108,7 +109,8 @@ async function setPageInfo(pageInstance, href) {
   })
   await pageInstance.goto(href, {
     referer: 'https://time.geekbang.org/',
-    waitUntil: 'networkidle0'
+    waitUntil: 'networkidle0',
+    timeout: 0
   })
 
   await setCss(pageInstance)
@@ -144,13 +146,21 @@ async function setCss(pageInstance) {
       // 侧边栏菜单
       sideMenu: $('#app > div >div:nth-child(1)'),
       // 音频播放
-      audio: contentDom.querySelector('div:nth-child(2) > div:nth-child(1) > div:nth-child(3) > div:nth-child(2)'),
+      //audio: contentDom.querySelector('div:nth-child(2) > div:nth-child(1) > div:nth-child(3) > div:nth-child(2)'),
+      audio: contentDom.querySelector(
+        'div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div:nth-child(2)'
+      ),
       // 课程推荐
-      courseAD: contentDom.querySelector('div:nth-child(2) > div:nth-child(1) > div:nth-child(3) > div:nth-child(4)'),
+      courseAD: contentDom.querySelector(
+        'div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div:nth-last-child(2)'
+      ),
       // 顶部菜单
       topBar: contentDom.querySelector('div'),
       // 评论输入框
-      commentInputBlock: $('#app > div >div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(4)'),
+      //commentInputBlock: $('#app > div >div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(4)'),
+      commentInputBlock: contentDom.querySelector(
+        'div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(4)'
+      ),
       // 两侧导航icon
       iconLeft: $('#app > div >div:nth-child(2) > div:nth-child(3)'),
       iconRight: $('#app > div >div:nth-child(2) > div:nth-child(4)')

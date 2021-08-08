@@ -1,3 +1,4 @@
+//Geek Time API calls
 const axios = require('axios')
 const setCookie = require('set-cookie-parser')
 const { saveCookie, getCookie } = require('./utils')
@@ -66,9 +67,10 @@ function getArticle(cid) {
   })
 }
 
-function login({ cellphone, password }) {
+//geek time login api
+function login({ cellphone, password, countryCode }) {
   const params = {
-    country: 86, // 国家默认为中国
+    country: countryCode, 
     cellphone,
     password,
     captcha: '',
