@@ -23,6 +23,12 @@ gkpdf clear # 清除账号信息
 
 ![instructions](./instructions.png)
 
+## Run in docker container via VSCode
+
+Open this folder in container in VSCode.
+
+Or add `--cap-add=SYS_ADMIN` when run and build the docker image alone.
+
 changeLogs:
 - 4.0.5: feat: 添加 clear 命令。用于切换账号
 - 4.0.4: fix: 修复 windows 下文件名存在非法字符导致的下载出错
