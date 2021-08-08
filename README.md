@@ -21,7 +21,14 @@ gkpdf clear # 清除账号信息
 
 操作说明：
 
-![instructions](./instructions.png)
+支持下载单个课程和一键下载所有课程，开始先进行要下载的类型：
+![selectDownloadType](./screenshot/selectDownloadType.png)
+
+1、下载单个课程
+![instructions](./screenshot/instructions.png)
+
+2、下载所有课程（目前仅支持从头开始下载，且一次只能下载一门课程）
+![downloadAllCourses](./screenshot/downloadAllCourses.png)
 
 changeLogs:
 - 4.0.5: feat: 添加 clear 命令。用于切换账号

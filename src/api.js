@@ -22,7 +22,7 @@ function updateHeaders(cookie = []) {
 updateHeaders(getCookie())
 
 axiosInstance.interceptors.response.use(
-  function(response) {
+  function (response) {
     const failLoginCode = [-2000]
     let errorCode = response.data.error.code
     if (failLoginCode.includes(errorCode)) {
@@ -31,7 +31,7 @@ axiosInstance.interceptors.response.use(
     }
     return response
   },
-  function(error) {
+  function (error) {
     if (error.response.status == 452) {
       clearEffects()
       return Promise.reject('登录失效')
