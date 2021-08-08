@@ -7,7 +7,7 @@ need phone, password, course name.
 Do not record any information...
 
 ```sh
-npm install geek-time-topdf -g  # in china use cnpm 推荐使用 cnpm，加快安装速度
+npm install geek-time-topdf -g  # in china use cnpm | 推荐使用 cnpm，加快安装速度
 
 gkpdf init # 账号初始化
 gkpdf clear # 清除账号信息
@@ -27,9 +27,17 @@ gkpdf clear # 清除账号信息
 
 Open this folder in container in VSCode.
 
-Or add `--cap-add=SYS_ADMIN` when run and build the docker image alone.
+Or add `--cap-add=SYS_ADMIN` when run and build the docker image alone. 
+
+通过 VSCode 在 docker 容器中运行
+
+在 VSCode 容器中打开此文件夹。
+
+或者在单独运行并构建 docker 映像时添加 `--cap-add=SYS_ADMIN`。
+
 
 changeLogs:
+- 4.1.0: feat: 增加国家代码，调整样式过滤
 - 4.0.5: feat: 添加 clear 命令。用于切换账号
 - 4.0.4: fix: 修复 windows 下文件名存在非法字符导致的下载出错
 - 4.0.3: fix: 修复课程打印不出来的问题

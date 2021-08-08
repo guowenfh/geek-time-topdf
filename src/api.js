@@ -23,7 +23,7 @@ function updateHeaders(cookie = []) {
 updateHeaders(getCookie())
 
 axiosInstance.interceptors.response.use(
-  function(response) {
+  function (response) {
     const failLoginCode = [-2000]
     let errorCode = response.data.error.code
     if (failLoginCode.includes(errorCode)) {
@@ -32,7 +32,7 @@ axiosInstance.interceptors.response.use(
     }
     return response
   },
-  function(error) {
+  function (error) {
     if (error.response.status == 452) {
       clearEffects()
       return Promise.reject('登录失效')
@@ -42,7 +42,7 @@ axiosInstance.interceptors.response.use(
 )
 
 function getList() {
-  // TODO  不知道分页的页码传输 先写1000
+  // TODO  不知道分页的页码传输 先写 1000
   return axiosInstance.get(urls.productsAll, { data: { size: 1000, nav_id: 1 } }).then(res => {
     const data = res.data.data
     return data.list.map((item, index) => {
@@ -70,7 +70,7 @@ function getArticle(cid) {
 //geek time login api
 function login({ cellphone, password, countryCode }) {
   const params = {
-    country: countryCode, 
+    country: countryCode,
     cellphone,
     password,
     captcha: '',

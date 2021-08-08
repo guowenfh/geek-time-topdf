@@ -63,7 +63,7 @@ async function pageToFile(articleList, course, basePath, fileType) {
       await mkdir(basePath)
     }
     // 进度条
-    const progressBar = new ProgressBar('  printing: :current/:total [:bar]  :title', {
+    const progressBar = new ProgressBar('打印中: :current/:total [:bar]  :title', {
       complete: '=',
       width: 20,
       total: articleList.length
