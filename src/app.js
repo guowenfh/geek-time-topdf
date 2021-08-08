@@ -4,9 +4,9 @@ const path = require('path')
 const util = require('util')
 const mkdir = util.promisify(fs.mkdir)
 const access = util.promisify(fs.access)
-const api = require('./api.js')
+const api = require('geek-time-topdf/src/api')
 const ProgressBar = require('progress')
-const utils = require('./utils')
+const utils = require('geek-time-topdf/src/utils')
 let browser
 let page
 
@@ -32,15 +32,25 @@ async function initBrowser() {
   }
 }
 
-async function downArticle({ article, pagePrint }) {
+/**
+ * 下载单个课程
+ * @param {Number} curCourseIndex 当前课程的下标
+ * @param {Array} subList 已购买的课程列表
+ * @param {Object} course 当前课程
+ * @param {Object} pagePrint 打印信息
+ */
+async function downArticle({ curCourseIndex, subList, course, pagePrint }) {
   if (!browser) {
     await initBrowser()
   }
-  const curr = article.subList.find(item => item.title.indexOf(article.course.trim()) !== -1)
-  let task = await api.getArticle(curr.extra.column_id)
-  console.log(`找到${task.length}节课程`)
-  await pageToFile(task, article.course, pagePrint.path, pagePrint.fileType)
+  let task = await api.getArticle(course.extra.column_id)
+  console.log(`《${course.title}》找到：${task.length}节课程`)
+  if (curCourseIndex >= 0) {
+    console.log(`总共${subList.length}个课程，正在下载第 ${curCourseIndex + 1} 个`)
+  }
+  await pageToFile(task, course.title, pagePrint.path, pagePrint.fileType)
 }
+
 /**
  * 把文件进行打印
  *
@@ -160,10 +170,10 @@ async function setCss(pageInstance) {
       bodyChild: $('#app > div >div:nth-child(2)'),
       bodyLast: $('#app > div >div:nth-child(2) >div:nth-child(2)')
     }
-    setStyleObjetc(hideDomMap, 'display', 'none')
-    setStyleObjetc(fixPosDomMap, 'position', 'initial')
+    setStyleObject(hideDomMap, 'display', 'none')
+    setStyleObject(fixPosDomMap, 'position', 'initial')
 
-    function setStyleObjetc(obj, attr, value) {
+    function setStyleObject(obj, attr, value) {
       Object.values(obj).map(dom => {
         if (dom) {
           dom.style[attr] = value

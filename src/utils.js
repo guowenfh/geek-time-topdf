@@ -1,16 +1,18 @@
 const fs = require('fs')
 const path = require('path')
+
+const { DOWNLOAD_ALL_COURSE_TYPE, DOWNLOAD_SINGLE_COURSE_TYPE } = require('./constants')
 /**
  * 获取账号名密码配置
  * @returns {Array}
  */
-exports.getAccountPromptList = function() {
+exports.getAccountPromptList = function () {
   return [
     {
       type: 'input',
       name: 'cellphone',
       message: '请输入你的手机号码：',
-      validate: function(input) {
+      validate: function (input) {
         // this.async() is inquirer use
         var done = this.async()
         if (isNaN(Number(input))) return done('手机号码必须是数字')
@@ -22,7 +24,7 @@ exports.getAccountPromptList = function() {
       type: 'password',
       name: 'password',
       message: '请输入你的密码：',
-      validate: function(input) {
+      validate: function (input) {
         // this.async() is inquirer use
         var done = this.async()
         if (input.length < 6 || input.length > 24) {
@@ -39,7 +41,7 @@ exports.getAccountPromptList = function() {
  * @param {Array} choices
  * @returns {Array}
  */
-exports.getCoursePromptList = function(choices) {
+exports.getCoursePromptList = function (choices) {
   return [
     {
       type: 'list',
@@ -54,7 +56,7 @@ exports.getCoursePromptList = function(choices) {
  * 目录配置
  * @returns {Array}
  */
-exports.getCoursePathPromptList = function() {
+exports.getCoursePathPromptList = function () {
   return [
     {
       type: 'input',
@@ -65,10 +67,24 @@ exports.getCoursePathPromptList = function() {
 }
 
 /**
+ * 选择下载类型的配置
+ */
+exports.getDownloadTypePromptList = function () {
+  return [
+    {
+      type: 'rawlist',
+      name: 'type',
+      choices: [DOWNLOAD_SINGLE_COURSE_TYPE, DOWNLOAD_ALL_COURSE_TYPE],
+      message: '请输入你要下载的类型：'
+    }
+  ]
+}
+
+/**
  * 输出类型配置
  * @returns {Array}
  */
-exports.getOutputFileType = function() {
+exports.getOutputFileType = function () {
   return [
     {
       type: 'rawlist',
@@ -83,7 +99,7 @@ exports.getOutputFileType = function() {
  * 输出类型配置
  * @returns {Array}
  */
-exports.getIsRepeatType = function() {
+exports.getIsRepeatType = function () {
   return [
     {
       type: 'confirm',
@@ -97,7 +113,7 @@ exports.getIsRepeatType = function() {
  * 保存cookie到配置文件
  * @returns {undefined}
  */
-exports.saveCookie = function(cookieArr) {
+exports.saveCookie = function (cookieArr) {
   cookieArr = cookieArr.map(item => {
     // 在puppeteer设置cookie的时候必须设置url，去掉时间，避免
     item.url = 'https://time.geekbang.org'
@@ -112,7 +128,7 @@ exports.saveCookie = function(cookieArr) {
  * 取出cookie到配置文件
  * @returns {Array}
  */
-exports.getCookie = function() {
+exports.getCookie = function () {
   const cookieStr = fs.readFileSync(path.resolve(__dirname, '../cookie.json'), 'utf8')
   return JSON.parse(cookieStr)
 }
@@ -120,10 +136,10 @@ exports.getCookie = function() {
  * 调试用
  * @returns {undefined}
  */
-exports.savePage = function(apge) {
+exports.savePage = function (apge) {
   fs.writeFileSync(path.resolve(__dirname, '../page.html'), apge)
 }
 
-exports.clear = function() {
+exports.clear = function () {
   fs.writeFileSync(path.resolve(__dirname, '../cookie.json'), '[]')
 }
